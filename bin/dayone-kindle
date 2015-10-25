@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+
+if RUBY_VERSION.to_f < 2.0
+  $stderr.puts 'dayone-kindle require Ruby 2.0+.'
+  exit 1
+end
+
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8
+
+require 'optparse'
+
+# resolve bin path, ignoring symlinks
+require 'pathname'
+bin_file = Pathname.new(__FILE__).realpath
+
+# add self to libpath
+$LOAD_PATH:.unshift File.expand_path('../../lib', bin_file)
+
+require 'dayone-kindle'
+
+def dialog(value)
+  script = <<-END
+    tell app "System Events"
+      display dialog "#{value}"
+    end tell
+  END
+
+  system('osascript ' + script.split(/\n/).map { |line| "-e '#{line}'" }.join(' ') + '> /dev/null 2>&1')
+end
+
+ask_confirmation = true
+tags = []
+dry_run = false
+archive = true
+
+optparse = OptionParser.new do |opts|
+  opts.banner = 'Usage: dayone-kindle [options]'
+
+  opts.on '--dry', 'Outputs highlights instead of importing them (use for testing)' do
+    dry_run = true
+  end
+
+  opts.on '-t', '--tags reading,quote', Array, 'Tags to be saved with highlights' do |t|
+    tags = t
+  end
+
+  opts.on '--auto-confirm', 'Do not ask for confirmation before import' do
+    ask_confirmation = false
+  end
+
+  opts.on '--no-archive', 'Do not archive imported highlights on device' do
+    archive = false
+  end
+end
+
+optparse.parse!
+
+Device.find_at('/Volumes').each do |kindle|
+  next if kindle.highlights.empty?
+
+  if ask_confirmation
+    label = "#{kindle.name} detected. Highlights will be imported to Day One."
+    next unless dialog(label)
+  end
+
+  store = DataStore.new(kindle.highlights, tags)
+  puts "#{store.entries.count} highlights to import"
+
+  puts "Tags: #{tags.empty? ? 'no tags' : tags.join(', ')}"
+
+  if dry_run
+    puts 'Dry run, no highlight imported'
+  else
+    entries = store.save!
+    puts "#{entries.count} highlights imported with tags"
+
+    if archive
+      path = kindle.archive_highlights!
+      puts "Highlights archived at #{path}"
+    end
+
+    kindle.clear_highlights!
+    puts 'Highlights cleared from device'
+  end
+end
