@@ -1,13 +1,15 @@
-class ClippingsParser
-  attr_reader :raw
+module DayOneKindle
+  class ClippingsParser
+    attr_reader :raw
 
-  def initialize(raw)
-    @raw = raw
-  end
+    def initialize(raw)
+      @raw = raw
+    end
 
-  def highlights
-    raw.split("\n==========\n").map do |r|
-      ClippingParser.new(r).highlight
-    end.compact
+    def highlights
+      raw.split("\n==========\n").map do |r|
+        ClippingParser.new(r).highlight
+      end.compact
+    end
   end
 end

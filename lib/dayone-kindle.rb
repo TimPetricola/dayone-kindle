@@ -1,12 +1,48 @@
 require 'time'
 require 'fileutils'
 
+# https://github.com/rails/rails/blob/master/activesupport/lib/active_support/core_ext/object/try.rb
+class Object
+  def try(*a, &b)
+    try!(*a, &b) if a.empty? || respond_to?(a.first)
+  end
+
+  def try!(*a, &b)
+    if a.empty? && block_given?
+      if b.arity == 0
+        instance_eval(&b)
+      else
+        yield self
+      end
+    else
+      public_send(*a, &b)
+    end
+  end
+end
+
+# https://github.com/rails/rails/blob/master/activesupport/lib/active_support/core_ext/array/conversions.rb
+class Array
+  def to_sentence(words_connector: ', ', two_words_connector: ' and ', last_word_connector: ', and ')
+    case length
+    when 0
+      ''
+    when 1
+      "#{self[0]}"
+    when 2
+      "#{self[0]}#{two_words_connector}#{self[1]}"
+    else
+      "#{self[0...-1].join(words_connector)}#{last_word_connector}#{self[-1]}"
+    end
+  end
+end
+
 LIB = File.dirname(File.expand_path(__FILE__))
 
-require LIB + '/dayone-kindle/core_ext'
 require LIB + '/dayone-kindle/day_one'
 require LIB + '/dayone-kindle/highlight'
 require LIB + '/dayone-kindle/data_store'
 require LIB + '/dayone-kindle/clipping_parser'
 require LIB + '/dayone-kindle/clippings_parser'
 require LIB + '/dayone-kindle/device'
+require LIB + '/dayone-kindle/cli'
+

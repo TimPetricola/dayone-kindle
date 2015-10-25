@@ -2,7 +2,7 @@ require 'test_helper'
 
 class HighlightTest < Minitest::Test
   def test_to_markdown
-    highlight = Highlight.new(
+    highlight = DayOneKindle::Highlight.new(
       book: 'The Pragmatic Programmer: From Journeyman to Master',
       authors: ['Andrew Hunt', 'David Thomas'],
       highlight: 'Embrace the fact that debugging is just problem solving, and attack it as such.',

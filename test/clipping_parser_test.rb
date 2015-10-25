@@ -8,7 +8,7 @@ Shibumi (Trevanian)
 
 Do not fall into the error of the artisan who boasts of twenty years experience in his craft while in fact he has had only one year of experience—twenty times.
 EOF
-    highlight = ClippingParser.new(clipping).highlight
+    highlight = DayOneKindle::ClippingParser.new(clipping).highlight
 
     assert_equal 'Shibumi', highlight.book
     assert_equal ['Trevanian'], highlight.authors

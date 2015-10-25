@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rake'
-
-group :test do
+group :development, :test do
+  gem 'rake'
   gem 'minitest-reporters'
 end
